@@ -14,9 +14,10 @@ import (
 	"oneshottest/client"
 )
 
-// main is the entry point for the CLI.
-func main() {
-	cmd := &cli.Command{
+// newCommand creates the CLI command with all flags and configuration.
+// Extracted to allow testing of flag registration in-process.
+func newCommand() *cli.Command {
+	return &cli.Command{
 		Name:  "temporaldb-cli",
 		Usage: "Temporal database CLI",
 		Flags: []cli.Flag{
@@ -35,6 +36,11 @@ func main() {
 		},
 		Action: run,
 	}
+}
+
+// main is the entry point for the CLI.
+func main() {
+	cmd := newCommand()
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

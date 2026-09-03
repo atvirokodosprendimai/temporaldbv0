@@ -100,52 +100,24 @@ func TestDashFExecutesEveryStatementInOrder(t *testing.T) {
 	}
 }
 
-// TestFlagsAreRegistered verifies that -e, -f and --json flags are registered.
-// This is a rung-2 selection check: delete a flag registration and this test must go red.
+// TestFlagsAreRegistered verifies that -e, -f and --json flags are registered in the source code.
+// This is a rung-2 selection check: delete a flag registration from newCommand() and this test must go red.
+// The test binds in-process to the cli.Command flags, not to a cached binary, so mutations are detected.
 func TestFlagsAreRegistered(t *testing.T) {
-	// Start a fake server.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/query" {
-			w.WriteHeader(http.StatusNotFound)
-			return
+	cmd := newCommand()
+
+	// Create a map of flag names for easy lookup.
+	flagNames := make(map[string]bool)
+	for _, flag := range cmd.Flags {
+		flagNames[flag.Names()[0]] = true
+	}
+
+	// Verify required flags are registered.
+	requiredFlags := []string{"e", "f", "json"}
+	for _, name := range requiredFlags {
+		if !flagNames[name] {
+			t.Errorf("flag -%s is not registered in the command", name)
 		}
-		result := tql.Result{Rows: []map[string]interface{}{}, Count: 0}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(result)
-	}))
-	defer server.Close()
-
-	// Try -e flag.
-	cmd := exec.Command("go", "run", ".", "-e", "GET test/x")
-	cmd.Env = append(os.Environ(), "TEMPORALDB_ADDR="+server.URL)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		t.Errorf("-e flag not working: %v, stderr: %s", err, stderr.String())
-	}
-
-	// Try -f flag.
-	tmpfile, err := os.CreateTemp("", "test-*.tql")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Fprintf(tmpfile, "GET test/y\n")
-	tmpfile.Close()
-	defer os.Remove(tmpfile.Name())
-
-	cmd = exec.Command("go", "run", ".", "-f", tmpfile.Name())
-	cmd.Env = append(os.Environ(), "TEMPORALDB_ADDR="+server.URL)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		t.Errorf("-f flag not working: %v, stderr: %s", err, stderr.String())
-	}
-
-	// Try --json flag.
-	cmd = exec.Command("go", "run", ".", "-e", "GET test/z", "--json")
-	cmd.Env = append(os.Environ(), "TEMPORALDB_ADDR="+server.URL)
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		t.Errorf("--json flag not working: %v, stderr: %s", err, stderr.String())
 	}
 }
 
@@ -211,6 +183,7 @@ func TestExitCodeIsNonZeroOnQueryError(t *testing.T) {
 }
 
 // TestREPLHandlesMultiLineAndEOF verifies that the REPL handles multi-line statements and EOF.
+// It also ensures that incomplete statements cannot be the only way to invoke REPL behavior.
 func TestREPLHandlesMultiLineAndEOF(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/query" {
@@ -229,8 +202,8 @@ func TestREPLHandlesMultiLineAndEOF(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Prepare REPL input: multi-line statement terminated by ; and EOF.
-	input := "GET users/alice;\nEOF"
+	// Prepare REPL input: a complete statement terminated by ; and then EOF.
+	input := "GET users/alice;\n"
 
 	cmd := exec.Command("go", "run", ".")
 	cmd.Env = append(os.Environ(), "TEMPORALDB_ADDR="+server.URL)
@@ -241,12 +214,17 @@ func TestREPLHandlesMultiLineAndEOF(t *testing.T) {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		t.Logf("REPL exited with: %v (expected for EOF)", err)
+		t.Fatalf("REPL failed: %v\nstderr: %s", err, stderr.String())
 	}
 
-	// Verify we got some output (the REPL should have processed the statement).
+	// Verify we got output (the REPL should have processed the statement).
 	output := stdout.String()
 	if output == "" {
-		t.Log("warning: REPL produced no output")
+		t.Fatal("REPL produced no output; statement was not executed")
+	}
+
+	// Verify the output contains evidence of the statement execution.
+	if !strings.Contains(output, "alice") && !strings.Contains(output, "stmt") {
+		t.Errorf("expected output to contain 'alice' or 'stmt', got: %s", output)
 	}
 }

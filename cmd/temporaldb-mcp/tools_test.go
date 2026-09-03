@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -24,8 +25,52 @@ func TestAllFiveToolsAreRegistered(t *testing.T) {
 	// Register tools (this happens in configureServer).
 	configureServer(server, nil, nil)
 
-	// The actual registration check verifies that all five tools are discoverable.
-	// This is verified through acceptance tests when the server runs and tools can be called.
+	// Expected tool names from §D10.
+	expectedTools := map[string]bool{
+		"tql_query":   true,
+		"tql_get":     true,
+		"tql_put":     true,
+		"tql_history": true,
+		"tql_search":  true,
+	}
+
+	// Use reflection to access the private tools field.
+	serverValue := reflect.ValueOf(server)
+	toolsField := serverValue.Elem().FieldByName("tools")
+
+	if !toolsField.IsValid() {
+		t.Fatal("could not access tools field from server")
+	}
+
+	// Access the features map from featureSet[*serverTool].
+	featuresField := toolsField.Elem().FieldByName("features")
+	if !featuresField.IsValid() {
+		t.Fatal("could not access features map from tools featureSet")
+	}
+
+	// Extract the tool names from the map.
+	registeredTools := make(map[string]bool)
+	for _, key := range featuresField.MapKeys() {
+		toolName := key.String()
+		registeredTools[toolName] = true
+	}
+
+	// Verify exactly the five expected tools are registered.
+	if len(registeredTools) != len(expectedTools) {
+		t.Fatalf("expected %d tools, got %d: %v", len(expectedTools), len(registeredTools), registeredTools)
+	}
+
+	for expectedName := range expectedTools {
+		if !registeredTools[expectedName] {
+			t.Errorf("expected tool not found: %s", expectedName)
+		}
+	}
+
+	for actualName := range registeredTools {
+		if !expectedTools[actualName] {
+			t.Errorf("unexpected tool registered: %s", actualName)
+		}
+	}
 }
 
 // TestToolSchemasDeclareEveryArgumentTheHandlerReads verifies tool schemas document all arguments.

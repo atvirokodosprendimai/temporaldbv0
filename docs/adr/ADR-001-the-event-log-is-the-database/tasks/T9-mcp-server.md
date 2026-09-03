@@ -91,6 +91,7 @@ Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
   ```
   the fence passed with the mechanism broken; it may not materialize, compile, load, or assert on the changed path
   ```
+- 2026-09-03 · 3ef6787* · mutant killed · exit 1 · `cmd/temporaldb-mcp/tools.go` · drop the tql_history registration under its §D10 name: the handler exists but no MCP client can reach it as tql_history · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26
 
 ## Invariants
 
@@ -133,3 +134,21 @@ Tool-written by `adr-verify <this-file>`. Empty at authoring.
   ```
 - 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:7109
 - 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:6769
+- 2026-09-03 · 3ef6787* · exit 1 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:4117
+  ```
+  --- last 10 line(s) of stdout (of 15 after folding 15 raw)
+  ok  	oneshottest/internal/backup	(cached)
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/graph	(cached)
+  ok  	oneshottest/internal/server	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/temporal	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ok  	oneshottest/internal/tql/ast	(cached)
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 3ef6787* · exit 0 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:6005
+- 2026-09-03 · 3ef6787* · exit 0 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:6209
