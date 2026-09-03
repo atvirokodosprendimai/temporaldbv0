@@ -120,7 +120,9 @@ func TestExecGetAsOfUsesTemporalVisible(t *testing.T) {
 	}
 }
 
-// TestExecFindBindsParametersNotStrings verifies a value containing SQL syntax is matched literally.
+// TestExecFindBindsParametersNotStrings verifies a value containing a quote is bound, not interpolated.
+// A value like "O'Reilly" would cause SQL syntax error if interpolated as 'O'Reilly'
+// but works correctly when bound as a parameter.
 func TestExecFindBindsParametersNotStrings(t *testing.T) {
 	ctx := context.Background()
 	db := setupTestDB(ctx, t)
@@ -129,8 +131,9 @@ func TestExecFindBindsParametersNotStrings(t *testing.T) {
 	store := event.NewStore(db)
 	exec := NewExecutor(store, nil, nil)
 
-	// PUT a document with value that looks like SQL
-	putStmt, err := Parse(`PUT docs/doc1 {"code":"drop table test"}`)
+	// PUT a document with a value containing a quote character
+	// This value would break SQL if interpolated as a string literal
+	putStmt, err := Parse(`PUT docs/doc1 {"author":"O'Reilly"}`)
 	if err != nil {
 		t.Fatalf("parse PUT: %v", err)
 	}
@@ -139,8 +142,22 @@ func TestExecFindBindsParametersNotStrings(t *testing.T) {
 		t.Fatalf("exec PUT: %v", err)
 	}
 
-	// FIND by the malicious value should match it literally (no injection)
-	findStmt, err := Parse(`FIND docs WHERE code = "drop table test"`)
+	// Also PUT a document with the author "Penguin" to test specificity
+	putStmt2, err := Parse(`PUT docs/doc2 {"author":"Penguin"}`)
+	if err != nil {
+		t.Fatalf("parse PUT 2: %v", err)
+	}
+	_, err = exec.Exec(ctx, putStmt2)
+	if err != nil {
+		t.Fatalf("exec PUT 2: %v", err)
+	}
+
+	// FIND by the value with quote should match it literally via bound parameter
+	// If the code interpolates instead of binding, the SQL becomes:
+	//   WHERE json_extract(value, '$.author') = 'O'Reilly'
+	// which is a syntax error (the quote closes the string early).
+	// With proper binding, it works correctly.
+	findStmt, err := Parse(`FIND docs WHERE author = "O'Reilly"`)
 	if err != nil {
 		t.Fatalf("parse FIND: %v", err)
 	}
@@ -150,16 +167,21 @@ func TestExecFindBindsParametersNotStrings(t *testing.T) {
 		t.Fatalf("exec FIND: %v", err)
 	}
 
-	// Should find the document (value matched safely by binding, not injection)
+	// If the query had a SQL syntax error (from incorrect interpolation),
+	// it would be reported here
+	if findResult.Error != "" {
+		t.Fatalf("FIND returned error (indicates broken binding): %s", findResult.Error)
+	}
+
+	// Should find exactly 1 row (the O'Reilly document, not the Penguin document)
 	if len(findResult.Rows) != 1 {
 		t.Fatalf("expected 1 row, got %d", len(findResult.Rows))
 	}
 
-	// Verify tables still exist (not dropped)
-	var count int64
-	err = db.QueryRowContext(ctx, `SELECT COUNT(*) FROM events`).Scan(&count)
-	if err != nil {
-		t.Fatalf("query events table (should exist): %v", err)
+	// Verify the result is the correct document
+	row := findResult.Rows[0]
+	if row["author"] != "O'Reilly" {
+		t.Errorf("expected author=O'Reilly, got %v", row["author"])
 	}
 }
 

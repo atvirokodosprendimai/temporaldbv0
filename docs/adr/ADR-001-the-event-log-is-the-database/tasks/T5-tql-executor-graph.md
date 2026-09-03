@@ -106,6 +106,9 @@ Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
   ```
 - 2026-09-03 · cafdd7b* · mutant killed · exit 1 · `internal/tql/executor.go` · delete the vector.Index.Search call in the SEARCH arm · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · covers:the SEARCH dispatch to vector.Index
 - 2026-09-03 · cafdd7b* · mutant killed · exit 1 · `internal/tql/executor.go` · replace the temporal.Visible call with an inline take-the-newest-event · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · covers:the temporal.Visible delegation
+- 2026-09-03 · 7af903b* · mutant killed · exit 1 · `internal/tql/executor.go` · interpolate the WHERE value into the SQL string instead of binding it · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · covers:parameter binding in FIND
+- 2026-09-03 · 7af903b* · mutant killed · exit 1 · `internal/tql/executor.go` · delete the vector.Index.Search call in the SEARCH arm · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · covers:the SEARCH dispatch to vector.Index
+- 2026-09-03 · 7af903b* · mutant killed · exit 1 · `internal/tql/executor.go` · replace the temporal.Visible call with an inline take-the-newest-event · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · covers:the temporal.Visible delegation
 
 ## Invariants
 
@@ -139,3 +142,7 @@ Tool-written by `adr-verify <this-file>`. Empty at authoring.
 - 2026-09-03 · cafdd7b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2681
 - 2026-09-03 · cafdd7b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2486
 - 2026-09-03 · cafdd7b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2626
+- 2026-09-03 · 7af903b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2578
+- 2026-09-03 · 7af903b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2709
+- 2026-09-03 · 7af903b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2577
+- 2026-09-03 · 7af903b* · exit 0 · `set -o pipefail …` · acceptance-sha256:f4190bffe9b3e17f8ddb534d8329fa958aa1ca19e166a14c8bac7fbd2931b9bd · ms:2500

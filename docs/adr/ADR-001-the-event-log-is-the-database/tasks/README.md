@@ -29,7 +29,7 @@ Ten tasks, so waves (parallel-safe groups) are required. Each wave is a topologi
 | T2 | Event log + projection | done | — | `go test ./internal/event/...` |
 | T3 | Temporal semantics | done | — | `go test ./internal/temporal/...` |
 | T4 | TQL front end (lexer, parser, AST) | done | — | `go test ./internal/tql/...` |
-| T5 | TQL executor + graph edges | pending | — | `go test ./internal/tql/... ./internal/graph/...` |
+| T5 | TQL executor + graph edges | done | — | `go test ./internal/tql/... ./internal/graph/...` |
 | T6 | Server + client package | pending | — | `go test ./internal/server/... ./client/...` |
 | T7 | Backup: snapshot, shipper, purge, restore | pending | — | `go test ./internal/backup/...` |
 | T8 | CLI (REPL, -e, -f) | pending | — | `go test ./cmd/temporaldb-cli/...` |
