@@ -8,6 +8,7 @@
 **Consumes:** `client.Client.Query(ctx, tql string) (Result, error)` (T6)
 **Data dependency:** hermetic — tools are exercised against an `httptest` server
 **Proof map:** v1
+**Rests-on:** `the five tool registrations`, `the tool input schemas matching the handlers`
 
 ## Goal
 
@@ -67,6 +68,21 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t9-reg.out && ! grep -qE 
 | 2 — something selects it | `TestAllFiveToolsAreRegistered` fails when a registration line is removed; that is the mutant |
 | 3 — the caller can discover it | `TestToolSchemasDeclareEveryArgumentTheHandlerReads` — a tool argument the handler honours but the schema never advertises is invisible to every caller who reads the schema |
 | 4 — it is used | nothing measures this yet |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+- **Break:** drop ONE of the five tool registrations in `cmd/temporaldb-mcp/main.go` — e.g. the
+  `tql_history` registration.
+- **Must go red:** `TestAllFiveToolsAreRegistered`.
+- **Why this one:** an unregistered tool is invisible to every MCP client while its own handler test
+  passes. Rung 3 has a second mechanism worth its own entry — break a schema field the handler reads
+  and check `TestToolSchemasDeclareEveryArgumentTheHandlerReads` goes red.
+
+One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 
 ## Mutation Log
 

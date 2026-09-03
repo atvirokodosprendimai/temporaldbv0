@@ -8,6 +8,7 @@
 **Consumes:** `tql.Executor.Exec(ctx, ast.Stmt) (Result, error)` (T5), `config.Load() (Config, error)` (T1)
 **Data dependency:** hermetic — `httptest` only
 **Proof map:** v1
+**Rests-on:** `the /query route registration`, `the /healthz route registration`, `the 400-vs-500 error mapping`
 
 ## Goal
 
@@ -66,6 +67,21 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t6-reg.out && ! grep -qE 
 | 2 — something selects it | `TestRouterMountsQueryAndHealthz` fails when the route registration is deleted; record it as the mutant |
 | 3 — the caller can discover it | `POST /query` and `GET /healthz` are the declared HTTP interface, asserted by path and method in the test rather than only exercised through the client |
 | 4 — it is used | nothing measures this yet — no request logging or metrics in v1 |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+- **Break:** the route registration in `internal/server/server.go` — e.g.
+  `--from 'r.Post("/query"' --to 'r.Post("/query-disabled"'`.
+- **Must go red:** `TestRouterMountsQueryAndHealthz`.
+- **Why this one:** a handler that exists, is unit-tested, and is never mounted is this pipeline's
+  most common shipped defect — and a handler test cannot catch it by construction, because it calls
+  the handler directly, which is precisely what the router is failing to do.
+
+One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 
 ## Mutation Log
 

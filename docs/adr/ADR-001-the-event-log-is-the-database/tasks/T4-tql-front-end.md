@@ -8,6 +8,7 @@
 **Consumes:** none
 **Data dependency:** hermetic
 **Proof map:** v1
+**Rests-on:** `the OR rejection in the WHERE parser`, `the position carried on a parse error`
 
 ## Goal
 
@@ -62,6 +63,20 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t4-reg.out && ! grep -qE 
 | 2 — something selects it | Nothing selects `Parse` in this task; T5's executor and T6's `POST /query` are the call sites and each records its own selection mutant |
 | 3 — the caller can discover it | The grammar in ADR-001 §D4 is the declared interface; `TestParseRejectsOrInWhere` pins the documented boundary |
 | 4 — it is used | nothing measures this yet |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+- **Break:** the `OR` rejection in `internal/tql/parser.go` — make the branch that returns the
+  "OR is not supported in v1" error fall through and accept the token instead.
+- **Must go red:** `TestParseRejectsOrInWhere`.
+- **Why this one:** the v1 grammar boundary is a promise the executor depends on. Silently accepting
+  `OR` ships a parse tree T5 cannot compile, and the failure surfaces at runtime rather than here.
+
+One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 
 ## Mutation Log
 

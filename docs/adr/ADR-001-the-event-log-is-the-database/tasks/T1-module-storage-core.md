@@ -8,6 +8,7 @@
 **Consumes:** none
 **Data dependency:** hermetic
 **Proof map:** v1
+**Rests-on:** `the WAL pragma read-back`, `the goose migration having run`, `the connection-pool cap`
 
 ## Goal
 
@@ -68,6 +69,27 @@ CGO_ENABLED=0 go test ./internal/storage/... ./internal/config/... 2>&1 | tee /t
 | 2 — something selects it | Nothing selects `storage.Open` yet — T2's `event.NewStore` is the first caller, and the mutation proving selection belongs to T2. Recorded as a known-unreached rung rather than claimed. |
 | 3 — the caller can discover it | Config keys are the declared interface; `TestLoadPrefersEnvOverDotEnv` reads them by name |
 | 4 — it is used | nothing measures this yet |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` can refuse an absent, non-unique or
+comment-only mutant but **cannot judge whether the mutant was well chosen** — a trivially-unique
+irrelevant line satisfies it. Run this one. If it comes back `survived`, the test named beside it is
+decoration and the fix is the test, not the mutant.
+
+⚠ `--from` must match EXACTLY ONE place in the file, and the text below was written BEFORE the code
+existed. Adapt the string to your actual source; keep the MECHANISM identical. The mechanism is the
+prescription, the string is only an illustration of it.
+
+```bash
+adr-verify docs/adr/ADR-001-the-event-log-is-the-database/tasks/T1-module-storage-core.md \
+  --mutant internal/storage/storage.go \
+  --from 'journal_mode=WAL' --to 'journal_mode=DELETE' \
+  --why 'TestOpenAppliesWALAndBusyTimeout must bind to the pragma actually applied, not to Open returning nil'
+```
+
+Expect `killed`. A `survived` here means the test asserted that `Open` returned no error rather than
+that WAL is in force — the exact shape the ADR's own Risks table warns about for this driver.
 
 ## Mutation Log
 

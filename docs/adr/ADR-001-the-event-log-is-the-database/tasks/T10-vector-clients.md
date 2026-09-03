@@ -8,6 +8,7 @@
 **Consumes:** `config.Load() (Config, error)` (T1)
 **Data dependency:** needs a live Qdrant + TEI instance for end-to-end confirmation, which this environment does not have (ADR-001 Out of Scope, checked 2026-09-03). The Acceptance fence is therefore hermetic `httptest` against the documented REST contracts, and the live path is a documented manual step — not a gate.
 **Proof map:** v1
+**Rests-on:** `the both-URLs-required config gate`, `the HTTP client timeout`
 
 ## Goal
 
@@ -72,6 +73,21 @@ covers it.
 | 2 — something selects it | Nothing in this task selects `Index` — T5's `SEARCH` dispatch is the only call site, and `TestExecSearchDispatchesToVectorIndex` (T5) is the mutation that proves it. Stated here rather than claimed, because T10 landing alone leaves this package unreached. |
 | 3 — the caller can discover it | `QDRANT_URL` and `TEI_URL` are the declared interface; `TestNewReturnsFalseWhenURLsUnset` pins their names |
 | 4 — it is used | nothing measures this yet, and nothing calls `Upsert` automatically either — automatic embedding on `PUT` is deferred (`docs/adr/BACKLOG.md` §5) |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+- **Break:** the config gate in `internal/vector/vector.go` — make `New` report configured when only
+  one of `QDRANT_URL` / `TEI_URL` is set.
+- **Must go red:** `TestNewReturnsFalseWhenURLsUnset`.
+- **Why this one:** the gate is what makes vector search *additive*. A gate that reports configured
+  when it is not turns an optional dependency into a runtime failure on every `SEARCH`, which is the
+  precise opposite of §D6's "feature absent, not server broken".
+
+One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 
 ## Mutation Log
 

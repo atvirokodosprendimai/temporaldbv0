@@ -8,6 +8,7 @@
 **Consumes:** `tql.Parse(src string) (ast.Stmt, error)` (T4), `temporal.Visible(events, asOf, validAt) (Event, bool)` (T3), `event.Store.Append(ctx, Event) (seq int64, err error)` (T2), `vector.Index.Search(ctx, collection, text, k)` (T10)
 **Data dependency:** hermetic — the vector leg is exercised against a stubbed `vector.Index`, never a live service
 **Proof map:** v1
+**Rests-on:** `parameter binding in FIND`, `the SEARCH dispatch to vector.Index`, `the temporal.Visible delegation`
 
 ## Goal
 
@@ -74,6 +75,27 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t5-reg.out && ! grep -qE 
 | 2 — something selects it | The executor selects `tql.Parse` (T4), `temporal.Visible` (T3), `event.Store.Append` (T2) and `vector.Index.Search` (T10). `TestExecGetAsOfUsesTemporalVisible` and `TestExecSearchDispatchesToVectorIndex` are the two that go red when the call is deleted — record both as mutants. |
 | 3 — the caller can discover it | `Result`'s exported shape is the contract T6's HTTP body and T9's MCP schemas both marshal |
 | 4 — it is used | nothing measures this yet — T6 is the first process that runs it |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+This task declares THREE mechanisms, so it owes three entries — a fence chaining several assertions
+with one bound mutant has been shown able to fail for one reason, and nothing is known about the
+other two.
+
+- **Break (1):** parameter binding in `internal/tql/executor.go` — interpolate the value into the SQL
+  string instead of passing a placeholder. **Must go red:** `TestExecFindBindsParametersNotStrings`.
+  `--covers 'parameter binding in FIND'`. This is the injection guard; a survived mutant here is a
+  security finding, not a test-quality note.
+- **Break (2):** delete the `vector.Index.Search` call in the `SEARCH` arm. **Must go red:**
+  `TestExecSearchDispatchesToVectorIndex`. `--covers 'the SEARCH dispatch to vector.Index'`. This is
+  the rung-2 check that T10 is reachable at all.
+- **Break (3):** replace the `temporal.Visible` call with an inline "take the newest event".
+  **Must go red:** `TestExecGetAsOfUsesTemporalVisible`. `--covers 'the temporal.Visible delegation'`.
+  A reimplemented comparison here is exactly what T3's invariant forbids.
 
 ## Mutation Log
 

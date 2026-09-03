@@ -8,6 +8,7 @@
 **Consumes:** `event.Event` (T2)
 **Data dependency:** hermetic
 **Proof map:** v1
+**Rests-on:** `the half-open valid_to boundary`, `the tx_time cutoff`
 
 ## Goal
 
@@ -60,6 +61,21 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t3-reg.out && ! grep -qE 
 | 2 — something selects it | No caller yet in this task; T5's executor and T7's restore are the two call sites, and each records its own selection mutant. Stated rather than claimed. |
 | 3 — the caller can discover it | The doc comment on `Visible` states the half-open convention; it is the declared contract |
 | 4 — it is used | nothing measures this yet |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+- **Break:** the half-open upper bound in `internal/temporal/temporal.go` — e.g.
+  `--from 'at.Before(e.ValidTo)' --to '!at.After(e.ValidTo)'`, turning `[from, to)` into `[from, to]`.
+- **Must go red:** `TestVisibleExcludesValidToBoundary`.
+- **Why this one:** this IS the inclusive-end bug class the ADR's Existing Primitives Audit
+  documents. If it survives, the boundary test is asserting something else and the whole
+  time-travel guarantee rests on nothing.
+
+One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 
 ## Mutation Log
 

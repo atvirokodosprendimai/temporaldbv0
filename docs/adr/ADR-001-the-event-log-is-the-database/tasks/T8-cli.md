@@ -8,6 +8,7 @@
 **Consumes:** `client.Client.Query(ctx, tql string) (Result, error)` (T6)
 **Data dependency:** hermetic — driven against an `httptest` server
 **Proof map:** v1
+**Rests-on:** `the -e/-f/--json flag registrations`, `the non-zero exit on a query error`
 
 ## Goal
 
@@ -66,6 +67,20 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t8-reg.out && ! grep -qE 
 | 2 — something selects it | `TestFlagsAreRegistered` fails when a flag registration is deleted; that is the mutant |
 | 3 — the caller can discover it | `-h` help text lists every mode; assert the help output names `-e`, `-f`, `--json` so an undocumented flag cannot be the only way in |
 | 4 — it is used | nothing measures this yet |
+
+## Prescribed Mutant
+
+Chosen at authoring, because `adr-verify --mutant` refuses an absent, non-unique or comment-only
+mutant but **cannot judge whether the mutant was well chosen**. ⚠ `--from` must match exactly one
+place, and this was written before the code existed: adapt the string, keep the mechanism.
+
+- **Break:** the `-f` flag registration in `cmd/temporaldb-cli/main.go` — remove it, leaving the
+  file-mode function present and unreachable.
+- **Must go red:** `TestFlagsAreRegistered`.
+- **Why this one:** it distinguishes "the mode is implemented" from "the mode can be selected". Every
+  test that calls the mode function directly stays green while the flag is gone.
+
+One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 
 ## Mutation Log
 
