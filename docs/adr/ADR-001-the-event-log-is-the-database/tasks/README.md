@@ -31,7 +31,7 @@ Ten tasks, so waves (parallel-safe groups) are required. Each wave is a topologi
 | T4 | TQL front end (lexer, parser, AST) | done | — | `go test ./internal/tql/...` |
 | T5 | TQL executor + graph edges | done | — | `go test ./internal/tql/... ./internal/graph/...` |
 | T6 | Server + client package | done | — | `go test ./internal/server/... ./client/...` |
-| T7 | Backup: snapshot, shipper, purge, restore | pending | — | `go test ./internal/backup/...` |
+| T7 | Backup: snapshot, shipper, purge, restore | done | — | `go test ./internal/backup/...` |
 | T8 | CLI (REPL, -e, -f) | pending | — | `go test ./cmd/temporaldb-cli/...` |
 | T9 | MCP server over the official Go SDK | pending | — | `go test ./cmd/temporaldb-mcp/...` |
 | T10 | Vector clients (Qdrant + TEI) | done | — | `go test ./internal/vector/...` |

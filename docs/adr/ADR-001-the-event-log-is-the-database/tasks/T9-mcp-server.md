@@ -87,6 +87,10 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 957e8ad* · mutant survived · exit 0 · `cmd/temporaldb-mcp/tools.go` · drop the tql_history registration: the handler exists but no MCP client can reach it by its §D10 name · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · covers:the five tool registrations
+  ```
+  the fence passed with the mechanism broken; it may not materialize, compile, load, or assert on the changed path
+  ```
 
 ## Invariants
 
@@ -111,3 +115,21 @@ revisit §D10's rejection of `mark3labs/mcp-go`, which this task may not decide 
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 957e8ad* · exit 1 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:3998
+  ```
+  --- last 10 line(s) of stdout (of 15 after folding 15 raw)
+  ok  	oneshottest/internal/backup	(cached)
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/graph	(cached)
+  ok  	oneshottest/internal/server	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/temporal	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ok  	oneshottest/internal/tql/ast	(cached)
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:7109
+- 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:8a3a0e3b5c58df40a030860fd72e2d44236682743acd3fbe0b2ea49849540c26 · ms:6769

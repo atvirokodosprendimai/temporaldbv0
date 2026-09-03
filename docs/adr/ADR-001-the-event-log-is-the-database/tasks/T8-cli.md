@@ -85,6 +85,10 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 957e8ad* · mutant survived · exit 0 · `cmd/temporaldb-cli/main.go` · remove the -f flag registration, leaving file mode implemented but unselectable · acceptance-sha256:95c1108db2b54ea7f1cdf6ce35043abfcc0216382c767c6b630e7e2ee7389c6f · covers:the -e/-f/--json flag registrations
+  ```
+  the fence passed with the mechanism broken; it may not materialize, compile, load, or assert on the changed path
+  ```
 
 ## Invariants
 
@@ -109,3 +113,21 @@ ergonomics may need to be reconciled with §D11 before this task's UX is settled
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 957e8ad* · exit 1 · `set -o pipefail …` · acceptance-sha256:95c1108db2b54ea7f1cdf6ce35043abfcc0216382c767c6b630e7e2ee7389c6f · ms:3623
+  ```
+  --- last 10 line(s) of stdout (of 15 after folding 15 raw)
+  ok  	oneshottest/internal/backup	(cached)
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/graph	(cached)
+  ok  	oneshottest/internal/server	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/temporal	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ok  	oneshottest/internal/tql/ast	(cached)
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:95c1108db2b54ea7f1cdf6ce35043abfcc0216382c767c6b630e7e2ee7389c6f · ms:7905
+- 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:95c1108db2b54ea7f1cdf6ce35043abfcc0216382c767c6b630e7e2ee7389c6f · ms:7369

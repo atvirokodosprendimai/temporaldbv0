@@ -92,6 +92,7 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 957e8ad* · mutant killed · exit 1 · `internal/backup/local.go` · remove the purge floor: with a snapshot present, Purge honours the retention window alone · acceptance-sha256:baf99f91964317168e7d7bdff2b260dfcf1c62f7a4699e1ff83028f0faf20afe · covers:the purge floor at the newest snapshot
 
 ## Invariants
 
@@ -120,3 +121,21 @@ enough" is not a bound.
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 957e8ad* · exit 1 · `set -o pipefail …` · acceptance-sha256:baf99f91964317168e7d7bdff2b260dfcf1c62f7a4699e1ff83028f0faf20afe · ms:4036
+  ```
+  --- last 10 line(s) of stdout (of 15 after folding 15 raw)
+  ok  	oneshottest/internal/backup	(cached)
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/graph	(cached)
+  ok  	oneshottest/internal/server	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/temporal	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ok  	oneshottest/internal/tql/ast	(cached)
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:baf99f91964317168e7d7bdff2b260dfcf1c62f7a4699e1ff83028f0faf20afe · ms:7806
+- 2026-09-03 · 957e8ad* · exit 0 · `set -o pipefail …` · acceptance-sha256:baf99f91964317168e7d7bdff2b260dfcf1c62f7a4699e1ff83028f0faf20afe · ms:7255
