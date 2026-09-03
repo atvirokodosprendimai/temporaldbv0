@@ -70,29 +70,6 @@ func Visible(events []event.Event, asOf, validAt time.Time) (event.Event, bool) 
 		}
 	}
 
-	// Check if validAt is exactly at the lower boundary of the visible event AND
-	// there are earlier events (by ValidFrom) that also pass asOf. This means we're at a transition
-	// point where an old version is ending and a new one is beginning at the exact same instant.
-	// At such boundaries, return false to avoid the inclusive-end bug.
-	if validAt.Equal(visible.ValidFrom) {
-		hasEarlier := false
-		for _, ev := range events {
-			// Filter by asOf.
-			if asOf != (time.Time{}) && ev.TxTime.After(asOf) {
-				continue
-			}
-			// Check if there's an earlier event (lower ValidFrom) in our filtered set.
-			if ev.ValidFrom.Before(visible.ValidFrom) {
-				hasEarlier = true
-				break
-			}
-		}
-		if hasEarlier {
-			// We're at a transition boundary; return false.
-			return event.Event{}, false
-		}
-	}
-
 	// Check if the visible version is within its interval at validAt.
 	// The interval is [ValidFrom, NextValidFrom). NextValidFrom is the ValidFrom of the earliest
 	// event (by ValidFrom) that is later than this one (considering asOf).

@@ -7,17 +7,20 @@ import (
 	"oneshottest/internal/event"
 )
 
-// TestVisibleExcludesValidToBoundary verifies that an instant exactly equal to valid_to
-// is NOT visible — the documented inclusive-end bug class from the ADR's Existing Primitives Audit.
-// Intervals are half-open [valid_from, valid_to), so valid_to is the exclusive upper bound.
-// valid_to is implicitly the ValidFrom of the next event.
+// TestVisibleExcludesValidToBoundary verifies the half-open [valid_from, valid_to) interval semantics:
+// at a version transition, the NEW version should be visible at its valid_from (inclusive lower bound),
+// and the OLD version should NOT be visible at the upper bound (exclusive).
+// The documented inclusive-end bug class from the ADR's Existing Primitives Audit is prevented by
+// ensuring the upper-bound comparison (validAt < valid_from_of_next_version) is enforced.
 func TestVisibleExcludesValidToBoundary(t *testing.T) {
 	validFrom1 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	validFrom2 := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC) // This is the exclusive upper bound for event1
+	validFrom3 := time.Date(2026, 1, 3, 0, 0, 0, 0, time.UTC) // This is the exclusive upper bound for event2
 	txTime := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 
-	// Two events: event1 valid from 2026-01-01 to 2026-01-02 (exclusive),
-	// event2 valid from 2026-01-02 onward.
+	// Three events: event1 valid from 2026-01-01 to 2026-01-02 (exclusive),
+	// event2 valid from 2026-01-02 to 2026-01-03 (exclusive),
+	// event3 valid from 2026-01-03 onward.
 	ev1 := event.Event{
 		Seq:        1,
 		Collection: "test",
@@ -40,22 +43,55 @@ func TestVisibleExcludesValidToBoundary(t *testing.T) {
 		Meta:       []byte(`{}`),
 	}
 
-	events := []event.Event{ev1, ev2}
-
-	// Query at exactly validFrom2 should return false (exclusive upper bound of event1).
-	_, visible := Visible(events, time.Time{}, validFrom2)
-	if visible {
-		t.Errorf("Visible at valid_to boundary: got true, want false (half-open [valid_from, valid_to))")
+	ev3 := event.Event{
+		Seq:        3,
+		Collection: "test",
+		Key:        "k1",
+		Op:         event.OpPut,
+		Value:      []byte(`{"x":3}`),
+		ValidFrom:  validFrom3,
+		TxTime:     txTime,
+		Meta:       []byte(`{}`),
 	}
 
-	// Query just before validFrom2 should return event1.
-	justBefore := validFrom2.Add(-1 * time.Nanosecond)
-	result, visible := Visible(events, time.Time{}, justBefore)
+	events := []event.Event{ev1, ev2, ev3}
+
+	// Query at exactly validFrom2 should return event2 (inclusive lower bound of event2, exclusive upper bound of event1).
+	result, visible := Visible(events, time.Time{}, validFrom2)
 	if !visible {
-		t.Errorf("Visible just before valid_to: got false, want true")
+		t.Errorf("Visible at valid_from of event2: got false, want true (new event should be visible at its start)")
 	}
-	if result.Key != "k1" || result.Seq != 1 {
-		t.Errorf("Visible just before valid_to: got event seq %d, want 1", result.Seq)
+	if result.Seq != 2 {
+		t.Errorf("Visible at validFrom2: got event seq %d, want 2", result.Seq)
+	}
+
+	// Query just before validFrom2 should return event1 (event1's exclusive upper bound).
+	justBefore2 := validFrom2.Add(-1 * time.Nanosecond)
+	result, visible = Visible(events, time.Time{}, justBefore2)
+	if !visible {
+		t.Errorf("Visible just before validFrom2: got false, want true")
+	}
+	if result.Seq != 1 {
+		t.Errorf("Visible just before validFrom2: got event seq %d, want 1", result.Seq)
+	}
+
+	// Query at exactly validFrom3 should return event3 (tests the upper bound of event2).
+	result, visible = Visible(events, time.Time{}, validFrom3)
+	if !visible {
+		t.Errorf("Visible at valid_from of event3: got false, want true")
+	}
+	if result.Seq != 3 {
+		t.Errorf("Visible at validFrom3: got event seq %d, want 3", result.Seq)
+	}
+
+	// Query just before validFrom3 should return event2 (tests event2's exclusive upper bound).
+	justBefore3 := validFrom3.Add(-1 * time.Nanosecond)
+	result, visible = Visible(events, time.Time{}, justBefore3)
+	if !visible {
+		t.Errorf("Visible just before validFrom3: got false, want true")
+	}
+	if result.Seq != 2 {
+		t.Errorf("Visible just before validFrom3: got event seq %d, want 2", result.Seq)
 	}
 }
 
