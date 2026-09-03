@@ -80,6 +80,10 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 16c9ae4* · mutant survived · exit 0 · `internal/temporal/temporal.go` · turn the half-open [valid_from, next_valid_from) upper bound into a closed one; TestVisibleExcludesValidToBoundary must go red · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb
+  ```
+  the fence passed with the mechanism broken; it may not materialize, compile, load, or assert on the changed path
+  ```
 
 ## Invariants
 
@@ -103,3 +107,5 @@ Stop and ask if a real requirement needs closed intervals — that contradicts �
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 16c9ae4* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2627
+- 2026-09-03 · 16c9ae4* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2377
