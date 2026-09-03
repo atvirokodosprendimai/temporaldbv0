@@ -86,6 +86,7 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 3e2cc29* · mutant killed · exit 1 · `internal/event/event.go` · an inclusive After() cursor re-ships one event on every restart of the T7 backup stream · acceptance-sha256:fdb2f263619a1dec665f0df9566d1df88eead3edbd9afb6228525f9908355997 · covers:the After() cursor being exclusive
 
 ## Invariants
 
@@ -113,3 +114,18 @@ volume — that reopens §D13, which this task may not decide alone.
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 3e2cc29* · exit 1 · `set -o pipefail …` · acceptance-sha256:fdb2f263619a1dec665f0df9566d1df88eead3edbd9afb6228525f9908355997 · ms:2659
+  ```
+  --- last 7 line(s) of stdout
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ?   	oneshottest/internal/tql/ast	[no test files]
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 3e2cc29* · exit 0 · `set -o pipefail …` · acceptance-sha256:fdb2f263619a1dec665f0df9566d1df88eead3edbd9afb6228525f9908355997 · ms:3327
+- 2026-09-03 · 3e2cc29* · exit 0 · `set -o pipefail …` · acceptance-sha256:fdb2f263619a1dec665f0df9566d1df88eead3edbd9afb6228525f9908355997 · ms:3355

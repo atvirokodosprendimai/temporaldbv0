@@ -104,3 +104,15 @@ Stop and ask if a verb in §D4 turns out to be unparseable without `OR` — that
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 3e2cc29* · exit 1 · `set -o pipefail …` · acceptance-sha256:2905a7b041536fd6a42c4a8c78cfcfa036a04a3b1dee4afdcdd68bde7fde2627 · ms:1628
+  ```
+  --- last 2 line(s) of stdout
+  ok  	oneshottest/internal/tql	(cached)
+  ?   	oneshottest/internal/tql/ast	[no test files]
+  ```
+- 2026-09-03 · 3e2cc29* · exit 1 · `set -o pipefail …` · acceptance-sha256:2905a7b041536fd6a42c4a8c78cfcfa036a04a3b1dee4afdcdd68bde7fde2627 · ms:1697
+  ```
+  --- last 2 line(s) of stdout
+  ok  	oneshottest/internal/tql	0.005s
+  ?   	oneshottest/internal/tql/ast	[no test files]
+  ```

@@ -8,7 +8,9 @@ import (
 
 // Config holds the application configuration loaded from environment variables and .env file.
 type Config struct {
-	DataDir string
+	DataDir   string
+	QdrantURL string
+	TEIURL    string
 }
 
 // Load loads configuration from environment variables, with optional .env file as fallback.
@@ -18,7 +20,9 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		DataDir: os.Getenv("TEMPORALDB_DATA_DIR"),
+		DataDir:   os.Getenv("TEMPORALDB_DATA_DIR"),
+		QdrantURL: os.Getenv("QDRANT_URL"),
+		TEIURL:    os.Getenv("TEI_URL"),
 	}
 
 	return cfg, nil

@@ -92,6 +92,7 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 3e2cc29* · mutant killed · exit 1 · `internal/vector/vector.go` · a gate that reports configured with one URL set turns the optional dependency into a runtime failure on every SEARCH · acceptance-sha256:343422fa60d3406547185d238b4278459d4bce9c28042f29d68a587daad053d5 · covers:the both-URLs-required config gate
 
 ## Invariants
 
@@ -123,3 +124,18 @@ Stop and ask before making vector search load-bearing for any non-`SEARCH` verb:
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 3e2cc29* · exit 1 · `set -o pipefail …` · acceptance-sha256:343422fa60d3406547185d238b4278459d4bce9c28042f29d68a587daad053d5 · ms:2554
+  ```
+  --- last 7 line(s) of stdout
+  ok  	oneshottest/internal/vector	(cached)
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ?   	oneshottest/internal/tql/ast	[no test files]
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 3e2cc29* · exit 0 · `set -o pipefail …` · acceptance-sha256:343422fa60d3406547185d238b4278459d4bce9c28042f29d68a587daad053d5 · ms:3330
+- 2026-09-03 · 3e2cc29* · exit 0 · `set -o pipefail …` · acceptance-sha256:343422fa60d3406547185d238b4278459d4bce9c28042f29d68a587daad053d5 · ms:3235
