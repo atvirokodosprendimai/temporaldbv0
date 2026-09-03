@@ -53,7 +53,7 @@ CGO_ENABLED=0 go test ./... 2>&1 | tee /tmp/acc-adr001-t4-reg.out && ! grep -qE 
 | `TestParseAsOfAndValidAtClauses` | `internal/tql/parser_test.go` | both temporal clauses parse, independently and together | — | S4 |
 | `TestParseRejectsOrInWhere` | `internal/tql/parser_test.go` | the v1 boundary is enforced by the parser, with a named error — not silently accepted | — | S4 |
 | `TestParseErrorCarriesPosition` | `internal/tql/parser_test.go` | the error names line/column and the offending token | — | S5 |
-| `TestLexerHandlesQuotedStringsAndTimestamps` | `internal/tql/lexer.go` tests in `parser_test.go` | escapes and RFC3339 literals tokenise | — | S2 |
+| `TestLexerHandlesQuotedStringsAndTimestamps` | `internal/tql/parser_test.go` | escapes and RFC3339 literals tokenise | — | S2 |
 
 ## Reachability
 
@@ -81,6 +81,7 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · f904dba* · mutant killed · exit 1 · `internal/tql/parser.go` · OR branch falls through and accepts the token instead of rejecting it · acceptance-sha256:2905a7b041536fd6a42c4a8c78cfcfa036a04a3b1dee4afdcdd68bde7fde2627 · covers:the OR rejection in the WHERE parser
 
 ## Invariants
 
@@ -116,3 +117,5 @@ Tool-written by `adr-verify <this-file>`. Empty at authoring.
   ok  	oneshottest/internal/tql	0.005s
   ?   	oneshottest/internal/tql/ast	[no test files]
   ```
+- 2026-09-03 · f904dba* · exit 0 · `set -o pipefail …` · acceptance-sha256:2905a7b041536fd6a42c4a8c78cfcfa036a04a3b1dee4afdcdd68bde7fde2627 · ms:2263
+- 2026-09-03 · f904dba* · exit 0 · `set -o pipefail …` · acceptance-sha256:2905a7b041536fd6a42c4a8c78cfcfa036a04a3b1dee4afdcdd68bde7fde2627 · ms:2216
