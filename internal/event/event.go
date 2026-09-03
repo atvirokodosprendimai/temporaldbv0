@@ -258,6 +258,24 @@ func (s *Store) ReplayAsOf(ctx context.Context, collection string, validAt time.
 	return state, nil
 }
 
+// QueryContext executes a query against the database.
+// Used by the executor to query the live projection and other tables.
+func (s *Store) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	return s.db.QueryContext(ctx, query, args...)
+}
+
+// QueryRowContext executes a query that returns at most one row.
+// Used by the executor to fetch single rows.
+func (s *Store) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	return s.db.QueryRowContext(ctx, query, args...)
+}
+
+// ExecContext executes a statement that does not return rows.
+// Used by the executor for DELETE, PURGE, and other mutations.
+func (s *Store) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return s.db.ExecContext(ctx, query, args...)
+}
+
 // boolToInt converts a boolean to 0 or 1 for SQLite.
 func boolToInt(b bool) int {
 	if b {
