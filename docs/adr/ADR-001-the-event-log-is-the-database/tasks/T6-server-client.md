@@ -86,6 +86,7 @@ One entry per mechanism in `Rests-on:`; use `--covers` to name which.
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 5e946ee* · mutant killed · exit 1 · `internal/server/server.go` · a handler that exists and is unit-tested but is never mounted on the router is the most common shipped defect; TestRouterMountsQueryAndHealthz must go red when the route registration is broken · acceptance-sha256:4e4ca78e940c90692376cfe00ab078affa5ab36c8f4a201d3f13f92da69c4de3 · covers:the /query route registration
 
 ## Invariants
 
@@ -114,3 +115,21 @@ Stop and ask if the server needs to be reachable from an untrusted network — t
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 5e946ee* · exit 1 · `set -o pipefail …` · acceptance-sha256:4e4ca78e940c90692376cfe00ab078affa5ab36c8f4a201d3f13f92da69c4de3 · ms:3683
+  ```
+  --- last 10 line(s) of stdout (of 12 after folding 13 raw)
+  ?   	oneshottest/cmd/temporaldb-server	[no test files]
+  ok  	oneshottest/internal/config	(cached)
+  ok  	oneshottest/internal/event	(cached)
+  ok  	oneshottest/internal/graph	(cached)
+  ok  	oneshottest/internal/server	(cached)
+  ok  	oneshottest/internal/storage	(cached)
+  ok  	oneshottest/internal/temporal	(cached)
+  ok  	oneshottest/internal/tql	(cached)
+  ok  	oneshottest/internal/tql/ast	(cached)
+  ok  	oneshottest/internal/vector	(cached)
+  --- last 1 line(s) of stderr
+  [adr-verify] the acceptance command exited 0 but scored NO tests. A filter that matches nothing is not a passing gate — write the tests the Tests table names, or fix the filter so it selects them.
+  ```
+- 2026-09-03 · 5e946ee* · exit 0 · `set -o pipefail …` · acceptance-sha256:4e4ca78e940c90692376cfe00ab078affa5ab36c8f4a201d3f13f92da69c4de3 · ms:4329
+- 2026-09-03 · 5e946ee* · exit 0 · `set -o pipefail …` · acceptance-sha256:4e4ca78e940c90692376cfe00ab078affa5ab36c8f4a201d3f13f92da69c4de3 · ms:4446

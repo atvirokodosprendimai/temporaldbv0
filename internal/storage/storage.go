@@ -70,3 +70,44 @@ func Open(ctx context.Context, cfg Config) (*sql.DB, error) {
 
 	return db, nil
 }
+
+// OpenMemory opens an in-memory SQLite database for testing.
+// It applies the same pragmas and migrations as Open.
+func OpenMemory() (*sql.DB, error) {
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	if err != nil {
+		return nil, fmt.Errorf("failed to open memory database: %w", err)
+	}
+
+	// Set connection pool cap
+	db.SetMaxOpenConns(1)
+
+	// Test the connection
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to ping memory database: %w", err)
+	}
+
+	// Run migrations
+	goose.SetBaseFS(migrationsFS)
+	goose.SetDialect("sqlite")
+	if err := goose.Up(db, "migrations"); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to run migrations on memory database: %w", err)
+	}
+
+	// Apply pragmas
+	pragmas := []string{
+		"PRAGMA journal_mode=WAL",
+		"PRAGMA busy_timeout=5000",
+		"PRAGMA foreign_keys=ON",
+	}
+	for _, pragma := range pragmas {
+		if _, err := db.Exec(pragma); err != nil {
+			db.Close()
+			return nil, fmt.Errorf("failed to apply pragma %s: %w", pragma, err)
+		}
+	}
+
+	return db, nil
+}
