@@ -5,6 +5,7 @@ package temporal
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"oneshottest/internal/event"
@@ -28,11 +29,8 @@ func Visible(events []event.Event, asOf, validAt time.Time) (event.Event, bool) 
 		return event.Event{}, false
 	}
 
-	// Filter events by asOf and collect valid ones by validAt.
-	// We want the event with the largest ValidFrom <= validAt, considering asOf constraints.
-
+	// Filter events by asOf to get the set of events to consider.
 	var candidates []event.Event
-
 	for _, ev := range events {
 		// Filter by transaction time: only consider events up to asOf.
 		// If asOf is zero, consider all events.
@@ -40,14 +38,6 @@ func Visible(events []event.Event, asOf, validAt time.Time) (event.Event, bool) 
 			// This event was written after the asOf cutoff, skip it.
 			continue
 		}
-
-		// Check if this event is valid at validAt on the business-time axis.
-		// A version is valid if validAt >= valid_from.
-		if validAt.Before(ev.ValidFrom) {
-			// validAt is before this event's valid_from, so it's not visible yet.
-			continue
-		}
-
 		candidates = append(candidates, ev)
 	}
 
@@ -55,52 +45,64 @@ func Visible(events []event.Event, asOf, validAt time.Time) (event.Event, bool) 
 		return event.Event{}, false
 	}
 
-	// Among candidates, find the one with the largest ValidFrom.
-	// When ValidFrom is the same, prefer the event with the largest Seq (most recent write).
-	// This is the most recent version valid at validAt (for the half-open interval [valid_from, next_valid_from)).
-	var visible event.Event
-	visible = candidates[0]
+	// Build a map of ValidFrom -> latest event (highest Seq) for each distinct ValidFrom.
+	// This deduplicates: if two events have the same ValidFrom, we only consider the latest one.
+	type versionInfo struct {
+		Event event.Event
+	}
+	versionMap := make(map[int64]*versionInfo) // Key is ValidFrom.UnixNano()
 
-	for i := 1; i < len(candidates); i++ {
-		if candidates[i].ValidFrom.After(visible.ValidFrom) {
-			visible = candidates[i]
-		} else if candidates[i].ValidFrom.Equal(visible.ValidFrom) && candidates[i].Seq > visible.Seq {
-			// Same ValidFrom, but more recent write (higher Seq)
-			visible = candidates[i]
+	for i, ev := range candidates {
+		key := ev.ValidFrom.UnixNano()
+		if existing, found := versionMap[key]; !found || ev.Seq > existing.Event.Seq {
+			versionMap[key] = &versionInfo{Event: candidates[i]}
 		}
 	}
 
-	// Check if the visible version is within its interval at validAt.
-	// The interval is [ValidFrom, NextValidFrom). NextValidFrom is the ValidFrom of the earliest
-	// event (by ValidFrom) that is later than this one (considering asOf).
-	nextValidFrom := time.Time{} // zero = unbounded (no next version)
-	for _, ev := range events {
-		// Filter by asOf.
-		if asOf != (time.Time{}) && ev.TxTime.After(asOf) {
+	// Collect distinct ValidFrom values (as nanoseconds since epoch) and sort them.
+	var validFroms []int64
+	for key := range versionMap {
+		validFroms = append(validFroms, key)
+	}
+	sort.Slice(validFroms, func(i, j int) bool {
+		return validFroms[i] < validFroms[j]
+	})
+
+	// Find the event whose interval [ValidFrom, NextValidFrom) contains validAt.
+	// Iterate through sorted distinct ValidFroms and check the interval [ValidFrom_i, ValidFrom_{i+1}).
+	for i, validFromNano := range validFroms {
+		validFrom := time.Unix(0, validFromNano)
+		ev := versionMap[validFromNano].Event
+
+		// Check lower bound: validAt >= ValidFrom (inclusive).
+		if validAt.Before(validFrom) {
+			// validAt is before this event's ValidFrom, so it's not in this interval yet.
 			continue
 		}
-		// Find the smallest ValidFrom > visible.ValidFrom.
-		if ev.ValidFrom.After(visible.ValidFrom) {
-			if nextValidFrom == (time.Time{}) || ev.ValidFrom.Before(nextValidFrom) {
-				nextValidFrom = ev.ValidFrom
+
+		// Check upper bound: validAt < NextValidFrom (exclusive).
+		// If there's a next version, check that validAt is strictly before it.
+		if i+1 < len(validFroms) {
+			nextValidFrom := time.Unix(0, validFroms[i+1])
+			if !validAt.Before(nextValidFrom) {
+				// validAt is at or after the next event's ValidFrom, so it's not in this interval.
+				// This check is the critical boundary enforcement: [valid_from, next_valid_from).
+				continue
 			}
 		}
+		// If i+1 >= len(validFroms), there is no next version, so validAt is always < infinity.
+
+		// Found the interval that contains validAt.
+		// If the event is a delete, the key is not visible even though the interval contains validAt.
+		if ev.Op == event.OpDelete {
+			return event.Event{}, false
+		}
+
+		return ev, true
 	}
 
-	// Check if validAt is in [ValidFrom, NextValidFrom).
-	// validAt >= ValidFrom (already checked above).
-	// validAt < NextValidFrom (unless NextValidFrom is zero, meaning unbounded).
-	if nextValidFrom != (time.Time{}) && !validAt.Before(nextValidFrom) {
-		// validAt is at or after the next event's ValidFrom, so current is not visible.
-		return event.Event{}, false
-	}
-
-	// If the visible event is a delete, the key is not visible.
-	if visible.Op == event.OpDelete {
-		return event.Event{}, false
-	}
-
-	return visible, true
+	// validAt does not fall within any event's interval.
+	return event.Event{}, false
 }
 
 // Parse parses a timestamp string in UTC only, rejecting ambiguous or local-timezone input.

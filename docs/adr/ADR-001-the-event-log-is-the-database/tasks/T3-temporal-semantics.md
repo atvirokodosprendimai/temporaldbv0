@@ -88,6 +88,7 @@ Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
   ```
   the fence passed with the mechanism broken; it may not materialize, compile, load, or assert on the changed path
   ```
+- 2026-09-03 · 4a6366f* · mutant killed · exit 1 · `internal/temporal/temporal.go` · turn the half-open [valid_from, next_valid_from) upper bound into a closed one; TestVisibleExcludesValidToBoundary must go red · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb
 
 ## Invariants
 
@@ -115,3 +116,5 @@ Tool-written by `adr-verify <this-file>`. Empty at authoring.
 - 2026-09-03 · 16c9ae4* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2377
 - 2026-09-03 · 976912f* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2368
 - 2026-09-03 · 976912f* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2205
+- 2026-09-03 · 4a6366f* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2402
+- 2026-09-03 · 4a6366f* · exit 0 · `set -o pipefail …` · acceptance-sha256:a80d3310718e90b7afe212287fca6f233b9250daa7b3957e3f34eed3bc478dbb · ms:2236
