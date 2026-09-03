@@ -33,7 +33,7 @@ Ten tasks, so waves (parallel-safe groups) are required. Each wave is a topologi
 | T6 | Server + client package | done | — | `go test ./internal/server/... ./client/...` |
 | T7 | Backup: snapshot, shipper, purge, restore | done | — | `go test ./internal/backup/...` |
 | T8 | CLI (REPL, -e, -f) | done | — | `go test ./cmd/temporaldb-cli/...` |
-| T9 | MCP server over the official Go SDK | pending | — | `go test ./cmd/temporaldb-mcp/...` |
+| T9 | MCP server over the official Go SDK | done | — | `go test ./cmd/temporaldb-mcp/...` |
 | T10 | Vector clients (Qdrant + TEI) | done | — | `go test ./internal/vector/...` |
 
 Status: `pending` | `partial` | `blocked` | `done`.

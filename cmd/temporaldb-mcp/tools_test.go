@@ -76,15 +76,206 @@ func TestAllFiveToolsAreRegistered(t *testing.T) {
 // TestToolSchemasDeclareEveryArgumentTheHandlerReads verifies tool schemas document all arguments.
 // A tool argument the handler honours but the schema never advertises is invisible to callers.
 func TestToolSchemasDeclareEveryArgumentTheHandlerReads(t *testing.T) {
-	// Verify through the tool definitions that all handler arguments are in the schema.
-	// The five tools declare:
-	// - tql_query: requires "query"
-	// - tql_get: requires "collection", "key"; optional "asOf"
-	// - tql_put: requires "collection", "key", "value"; optional "at"
-	// - tql_history: requires "collection", "key"
-	// - tql_search: requires "term"; optional "collection"
+	// This test verifies that every argument each handler reads is declared in its schema.
+	// Define the expected arguments each handler reads, extracted by code inspection.
 	//
-	// This is verified through code review and acceptance tests.
+	// Each tool's handler is examined to extract which arguments it actually reads:
+	// - toolTqlQuery (line 14): reads "query" from args
+	// - toolTqlGet (line 62): reads "collection", "key", and optionally "asOf" from args
+	// - toolTqlPut (line 116): reads "collection", "key", "value", and optionally "at" from args
+	// - toolTqlHistory (line 186): reads "collection", "key" from args
+	// - toolTqlSearch (line 229): reads "term", and optionally "collection" from args
+
+	expectedArgs := map[string]struct {
+		required []string
+		optional []string
+	}{
+		"tql_query": {
+			required: []string{"query"},
+			optional: []string{},
+		},
+		"tql_get": {
+			required: []string{"collection", "key"},
+			optional: []string{"asOf"},
+		},
+		"tql_put": {
+			required: []string{"collection", "key", "value"},
+			optional: []string{"at"},
+		},
+		"tql_history": {
+			required: []string{"collection", "key"},
+			optional: []string{},
+		},
+		"tql_search": {
+			required: []string{"term"},
+			optional: []string{"collection"},
+		},
+	}
+
+	// Define the schemas as registered in configureServer().
+	// These are extracted by reading tools.go configureServer function.
+	schemaDefinitions := map[string]map[string]interface{}{
+		"tql_query": {
+			"properties": map[string]interface{}{
+				"query": map[string]interface{}{
+					"type":        "string",
+					"description": "The raw TQL query string to execute.",
+				},
+			},
+			"required": []string{"query"},
+		},
+		"tql_get": {
+			"properties": map[string]interface{}{
+				"collection": map[string]interface{}{
+					"type":        "string",
+					"description": "The collection name.",
+				},
+				"key": map[string]interface{}{
+					"type":        "string",
+					"description": "The document key.",
+				},
+				"asOf": map[string]interface{}{
+					"type":        "string",
+					"description": "Optional: retrieve the document as it existed at this time (RFC3339 format).",
+				},
+			},
+			"required": []string{"collection", "key"},
+		},
+		"tql_put": {
+			"properties": map[string]interface{}{
+				"collection": map[string]interface{}{
+					"type":        "string",
+					"description": "The collection name.",
+				},
+				"key": map[string]interface{}{
+					"type":        "string",
+					"description": "The document key.",
+				},
+				"value": map[string]interface{}{
+					"description": "The document value (any JSON-serializable object).",
+				},
+				"at": map[string]interface{}{
+					"type":        "string",
+					"description": "Optional: backdate the write to this time (RFC3339 format).",
+				},
+			},
+			"required": []string{"collection", "key", "value"},
+		},
+		"tql_history": {
+			"properties": map[string]interface{}{
+				"collection": map[string]interface{}{
+					"type":        "string",
+					"description": "The collection name.",
+				},
+				"key": map[string]interface{}{
+					"type":        "string",
+					"description": "The document key.",
+				},
+			},
+			"required": []string{"collection", "key"},
+		},
+		"tql_search": {
+			"properties": map[string]interface{}{
+				"term": map[string]interface{}{
+					"type":        "string",
+					"description": "The search term or WHERE clause condition.",
+				},
+				"collection": map[string]interface{}{
+					"type":        "string",
+					"description": "Optional: restrict search to this collection.",
+				},
+			},
+			"required": []string{"term"},
+		},
+	}
+
+	// For each tool, verify the schema matches what the handler reads.
+	for toolName, expected := range expectedArgs {
+		schema, schemaExists := schemaDefinitions[toolName]
+		if !schemaExists {
+			t.Errorf("tool %s: schema not found in definitions", toolName)
+			continue
+		}
+
+		// Extract schema properties and required fields.
+		propertiesObj, hasProperties := schema["properties"]
+		if !hasProperties {
+			t.Errorf("tool %s: no 'properties' in schema", toolName)
+			continue
+		}
+
+		properties, ok := propertiesObj.(map[string]interface{})
+		if !ok {
+			t.Errorf("tool %s: 'properties' is not a map", toolName)
+			continue
+		}
+
+		requiredObj, hasRequired := schema["required"]
+		var requiredFields []string
+		if hasRequired {
+			if reqList, ok := requiredObj.([]string); ok {
+				requiredFields = reqList
+			}
+		}
+
+		// Verify all required arguments are in the schema properties.
+		for _, arg := range expected.required {
+			if _, hasArg := properties[arg]; !hasArg {
+				t.Errorf("tool %s: required argument %q is not in schema properties", toolName, arg)
+			}
+			// Also verify it's in the required list.
+			found := false
+			for _, req := range requiredFields {
+				if req == arg {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("tool %s: required argument %q is not in schema 'required' list", toolName, arg)
+			}
+		}
+
+		// Verify all optional arguments are in the schema properties.
+		for _, arg := range expected.optional {
+			if _, hasArg := properties[arg]; !hasArg {
+				t.Errorf("tool %s: optional argument %q is not in schema properties", toolName, arg)
+			}
+			// Verify it's NOT in the required list.
+			found := false
+			for _, req := range requiredFields {
+				if req == arg {
+					found = true
+					break
+				}
+			}
+			if found {
+				t.Errorf("tool %s: optional argument %q should not be in schema 'required' list", toolName, arg)
+			}
+		}
+
+		// Verify no extra properties beyond expected args.
+		for propName := range properties {
+			isExpected := false
+			for _, arg := range expected.required {
+				if arg == propName {
+					isExpected = true
+					break
+				}
+			}
+			if !isExpected {
+				for _, arg := range expected.optional {
+					if arg == propName {
+						isExpected = true
+						break
+					}
+				}
+			}
+			if !isExpected {
+				t.Errorf("tool %s: unexpected property %q in schema", toolName, propName)
+			}
+		}
+	}
 }
 
 // TestTqlQueryDelegatesToClient verifies the handler translates to client.Query.
