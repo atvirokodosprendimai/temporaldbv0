@@ -25,7 +25,7 @@ Ten tasks, so waves (parallel-safe groups) are required. Each wave is a topologi
 
 | ID | Title | Status | Covers | Acceptance |
 |----|-------|--------|--------|------------|
-| T1 | Module + storage core | pending | — | `go test ./internal/storage/... ./internal/config/...` |
+| T1 | Module + storage core | done | — | `go test ./internal/storage/... ./internal/config/...` |
 | T2 | Event log + projection | pending | — | `go test ./internal/event/...` |
 | T3 | Temporal semantics | pending | — | `go test ./internal/temporal/...` |
 | T4 | TQL front end (lexer, parser, AST) | pending | — | `go test ./internal/tql/...` |

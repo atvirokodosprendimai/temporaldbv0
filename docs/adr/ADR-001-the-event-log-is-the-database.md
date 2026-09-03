@@ -1,6 +1,6 @@
 # ADR-001: The event log is the database; everything else is a projection
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-03
 **Owner:** M
 **Spec:** None — no spec stage (greenfield repository; no `docs/specs/` or `eidos/` corpus exists)

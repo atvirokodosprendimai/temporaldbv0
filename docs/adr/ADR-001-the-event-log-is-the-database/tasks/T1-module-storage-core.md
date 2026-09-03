@@ -94,6 +94,7 @@ that WAL is in force — the exact shape the ADR's own Risks table warns about f
 ## Mutation Log
 
 Tool-written by `adr-verify <task.md> --mutant …`. Empty at authoring.
+- 2026-09-03 · 468e472* · mutant killed · exit 1 · `internal/storage/storage.go` · TestOpenAppliesWALAndBusyTimeout must bind to the pragma actually applied, not to Open returning nil · acceptance-sha256:8673a211f3f80907349af75a57a8773891f2d6a8037ebdbe34ca9c7644b37fe9
 
 ## Invariants
 
@@ -120,3 +121,5 @@ would invalidate §D1 and §D13 together, which is an ADR-level decision, not a 
 ## Verification Log
 
 Tool-written by `adr-verify <this-file>`. Empty at authoring.
+- 2026-09-03 · 468e472* · exit 0 · `set -o pipefail …` · acceptance-sha256:8673a211f3f80907349af75a57a8773891f2d6a8037ebdbe34ca9c7644b37fe9 · ms:1662
+- 2026-09-03 · 468e472* · exit 0 · `set -o pipefail …` · acceptance-sha256:8673a211f3f80907349af75a57a8773891f2d6a8037ebdbe34ca9c7644b37fe9 · ms:1530
